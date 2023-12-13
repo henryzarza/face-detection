@@ -8,7 +8,6 @@ import { MASKS } from '@/constants'
 const isLoadingModels = ref(true)
 const isLoadingDetection = ref(false)
 const errorMessage = ref()
-const imgContainerRef = ref()
 const imgElementRef = ref()
 
 // loading models
@@ -24,10 +23,10 @@ Promise.all([
   })
 
 // select mask
-const selectMask = (maskSrc: string) => {
+const selectMask = (maskSrc: string, topAdjustment = 0) => {
   isLoadingDetection.value = true
 
-  putMaskOnFace(maskSrc, imgElementRef.value, imgContainerRef.value)
+  putMaskOnFace(maskSrc, imgElementRef.value, topAdjustment)
     .then((response) => {
       isLoadingDetection.value = !response
     })
@@ -49,7 +48,7 @@ const selectMask = (maskSrc: string) => {
   <h5 v-if="isLoadingModels">Loading models...</h5>
   <h5 v-if="errorMessage" aria-live="polite" aria-atomic="true">{{ errorMessage }}</h5>
 
-  <div class="container" ref="imgContainerRef">
+  <div class="container">
     <img
       ref="imgElementRef"
       width="300"
@@ -57,7 +56,6 @@ const selectMask = (maskSrc: string) => {
       src="https://hips.hearstapps.com/hmg-prod/images/gettyimages-1356675370.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
       alt="User photo"
     />
-    <canvas id="canvasTest" width="300" height="300"></canvas>
   </div>
 
   <button>Take photo</button>
@@ -66,7 +64,7 @@ const selectMask = (maskSrc: string) => {
 
   <h4>Select a mask</h4>
   <div>
-    <button v-for="mask of MASKS" :key="mask.src" @click="() => selectMask(mask.src)">
+    <button v-for="mask of MASKS" :key="mask.src" @click="() => selectMask(mask.src, mask.topAdjustment)">
       <img width="300" height="300" :src="mask.src" :alt="mask.alt" />
     </button>
   </div>
@@ -77,11 +75,5 @@ const selectMask = (maskSrc: string) => {
   border: 1px solid green;
   display: inline-block;
   position: relative;
-}
-
-canvas {
-  position: absolute;
-  inset: 0;
-  border: 1px solid blue;
 }
 </style>
