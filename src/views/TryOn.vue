@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { nets } from 'face-api.js'
 
 import { putMaskOnFace } from '@/utils'
-import { MASKS } from '@/constants'
+import { MASKS, VIDEO_FACE_MASK_SIZE } from '@/constants'
 
 const isLoadingModels = ref(true)
 const isLoadingDetection = ref(false)
 const errorMessage = ref()
 const imgElementRef = ref()
+const audioElementRef = ref()
+const videoRef = ref()
+const canvasRef = ref()
+let streamRef: MediaStream
 
 // loading models
 Promise.all([
@@ -17,30 +21,87 @@ Promise.all([
 ])
   .then(() => {
     isLoadingModels.value = false
+    showCameraIntoVideo()
   })
   .catch((error: Error) => {
     errorMessage.value = `There was an error loading the models: ${error.name}`
   })
 
-// select mask
-const selectMask = (maskSrc: string, topAdjustment = 0) => {
-  isLoadingDetection.value = true
-
-  putMaskOnFace(maskSrc, imgElementRef.value, topAdjustment)
-    .then((response) => {
-      isLoadingDetection.value = !response
+// request access to user's camera
+const showCameraIntoVideo = () => {
+  navigator.mediaDevices
+    .getUserMedia({
+      video: {
+        width: { ideal: VIDEO_FACE_MASK_SIZE },
+        height: { ideal: VIDEO_FACE_MASK_SIZE },
+        facingMode: 'user'
+      },
+      audio: false
+    })
+    .then((stream) => {
+      streamRef = stream
+      // render the camera stream into the video
+      videoRef.value.srcObject = streamRef
     })
     .catch((error: Error) => {
-      isLoadingDetection.value = false
-      errorMessage.value = error.name
+      if (error.name === 'OverconstrainedError') {
+        errorMessage.value = `The resolution ${VIDEO_FACE_MASK_SIZE}x${VIDEO_FACE_MASK_SIZE} px is not supported by your device.`
+      } else if (error.name === 'NotAllowedError') {
+        errorMessage.value = 'You need to grant this page permission to access your camera.'
+      } else {
+        errorMessage.value = `getUserMedia error: ${error.name}`
+      }
     })
 }
 
-/* onUnmounted(() => {
+const takePhoto = () => {
+  if (!imgElementRef.value.getAttribute('src')) {
+    const context = canvasRef.value.getContext('2d')
+    context.drawImage(videoRef.value, 0, 0, VIDEO_FACE_MASK_SIZE, VIDEO_FACE_MASK_SIZE)
+    const data = canvasRef.value.toDataURL('image/png')
+    imgElementRef.value.setAttribute('src', data)
+
+    // play the camera audio
+    audioElementRef.value.play()
+    // stop using user's camera
+    streamRef.getTracks().forEach((track: { stop: () => any }) => track.stop())
+  }
+}
+
+const clearPhoto = () => {
+  const context = canvasRef.value.getContext('2d')
+  context.clearRect(0, 0, VIDEO_FACE_MASK_SIZE, VIDEO_FACE_MASK_SIZE)
+  imgElementRef.value.setAttribute('src', '')
+  // remove the old mask overlay
+  const oldOverlay = imgElementRef.value.parentElement?.querySelector('#overlay')
+  if (oldOverlay) {
+    imgElementRef.value.parentElement?.removeChild(oldOverlay)
+  }
+
+  showCameraIntoVideo()
+}
+
+// select mask
+const selectMask = (maskSrc: string) => {
+  if (imgElementRef.value.getAttribute('src')) {
+    isLoadingDetection.value = true
+
+    putMaskOnFace(maskSrc, imgElementRef.value)
+      .then((response) => {
+        isLoadingDetection.value = !response
+      })
+      .catch((error: Error) => {
+        isLoadingDetection.value = false
+        errorMessage.value = error
+      })
+  } else errorMessage.value = 'You have to take a picture first 😉'
+}
+
+onUnmounted(() => {
   if (streamRef) {
     streamRef.getTracks().forEach((track: { stop: () => any }) => track.stop())
   }
-}) */
+})
 </script>
 
 <template>
@@ -51,29 +112,51 @@ const selectMask = (maskSrc: string, topAdjustment = 0) => {
   <div class="container">
     <img
       ref="imgElementRef"
-      width="300"
-      height="300"
-      src="https://hips.hearstapps.com/hmg-prod/images/gettyimages-1356675370.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
-      alt="User photo"
+      :width="VIDEO_FACE_MASK_SIZE"
+      :height="VIDEO_FACE_MASK_SIZE"
+      class="img"
+      src=""
+      alt="Your awesome photo"
     />
+    <video
+      ref="videoRef"
+      :width="VIDEO_FACE_MASK_SIZE"
+      :height="VIDEO_FACE_MASK_SIZE"
+      poster="https://sm.ign.com/ign_nordic/cover/a/avatar-gen/avatar-generations_prsz.jpg"
+      autoplay
+      muted
+    />
+    <canvas ref="canvasRef" :width="VIDEO_FACE_MASK_SIZE" :height="VIDEO_FACE_MASK_SIZE" />
+    <audio
+      ref="audioElementRef"
+      src="https://res.cloudinary.com/dcqu0udnd/video/upload/v1702474052/camera-audio_z17u44.mp3"
+      type="audio/mp3"
+    ></audio>
   </div>
 
-  <button>Take photo</button>
+  <button @click="clearPhoto">Clear Photo</button>
+  <button @click="takePhoto">Take Photo</button>
 
   <h6 v-if="isLoadingDetection">Running detection</h6>
 
   <h4>Select a mask</h4>
   <div>
-    <button v-for="mask of MASKS" :key="mask.src" @click="() => selectMask(mask.src, mask.topAdjustment)">
-      <img width="300" height="300" :src="mask.src" :alt="mask.alt" />
+    <button v-for="mask of MASKS" :key="mask.src" @click="() => selectMask(mask.src)">
+      <img width="300" height="300" :src="mask.src" alt="" />
     </button>
   </div>
 </template>
 
 <style scoped>
 .container {
-  border: 1px solid green;
   display: inline-block;
   position: relative;
+}
+
+.img[src=''],
+canvas,
+audio,
+.img:not([src='']) + video {
+  display: none;
 }
 </style>

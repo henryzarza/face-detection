@@ -22,15 +22,11 @@ const maskPosition = (landmarks: FaceLandmarks68) => {
   }
 }
 
-export function putMaskOnFace(
-  maskSrc: string,
-  imgRef: HTMLImageElement,
-  topAdjustment: number
-) {
+export function putMaskOnFace(maskSrc: string, imgRef: HTMLImageElement) {
   // face-api uses the image natural width to make the detection
   const scale = imgRef.width / imgRef.naturalWidth
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const handleImage = (newImage: HTMLImageElement) => async () => {
       const detection = await detectSingleFace(
         newImage,
@@ -38,7 +34,8 @@ export function putMaskOnFace(
       ).withFaceLandmarks(true)
 
       if (!detection) {
-        throw new Error('Face not detected.')
+        reject('Face not detected.')
+        return
       }
 
       const overlayValues = maskPosition(detection.landmarks)
@@ -56,7 +53,7 @@ export function putMaskOnFace(
       overlay.style.cssText = `
         left: ${overlayValues.leftOffset * scale}px;
         position: absolute;
-        top: calc(${overlayValues.topOffset * scale}px - ${topAdjustment}px);
+        top: ${overlayValues.topOffset * scale}px;
         transform: rotate(${overlayValues.angle}deg);
         width: ${overlayValues.width * scale}px;
       `
