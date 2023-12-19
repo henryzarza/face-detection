@@ -142,7 +142,7 @@ onUnmounted(() => {
   <h4>Select a mask</h4>
   <div>
     <button v-for="mask of MASKS" :key="mask.src" @click="() => selectMask(mask.src)">
-      <img width="300" height="300" :src="mask.src" alt="" />
+      <img width="300" height="300" :src="mask.src" :alt="mask.alt" />
     </button>
   </div>
 </template>
