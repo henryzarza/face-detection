@@ -13,7 +13,12 @@ module.exports = {
       white: colors.white,
       stone: colors.stone,
       secondary: '#121212',
-      gold: '#FFBF00'
+      gold: '#FFBF00',
+      crimson: '#EC1850',
+      vermilion: '#F64D07',
+      'dark-transparent': {
+        60: 'rgba(0, 0, 0, 0.65)'
+      }
     }
   },
   plugins: [],

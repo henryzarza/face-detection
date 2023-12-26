@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
+import MainNavbar from './components/MainNavbar.vue'
+import MainFooter from './components/MainFooter.vue'
 </script>
 
 <template>
-  <nav>
-    <RouterLink to="/">Home</RouterLink>
-    <RouterLink to="/about">About</RouterLink>
-    <RouterLink to="/try-on">Try On</RouterLink>
-  </nav>
+  <MainNavbar />
 
-  <main>
+  <main class="bg-stone-900 min-h-[100vh] relative">
     <RouterView />
   </main>
+
+  <MainFooter />
 </template>
