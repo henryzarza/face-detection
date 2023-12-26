@@ -68,3 +68,21 @@ export const MASKS = [
     alt: 'Carnival red and white mask'
   }
 ]
+
+export const ROUTES = [
+  {
+    path: '/',
+    name: 'home',
+    text: 'Try On'
+  },
+  {
+    path: '/music-player',
+    name: 'music-player',
+    text: 'Music Player'
+  },
+  {
+    path: '/do-laugh',
+    name: 'do-laugh',
+    text: "Don't Laugh"
+  }
+]

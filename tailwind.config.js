@@ -12,7 +12,6 @@ module.exports = {
     colors: {
       white: colors.white,
       stone: colors.stone,
-      secondary: '#121212',
       gold: '#FFBF00',
       crimson: '#EC1850',
       vermilion: '#F64D07',
