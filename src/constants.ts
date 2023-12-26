@@ -16,7 +16,7 @@ export const VIDEO_FACE_DIMENSIONS = {
   height: 300
 }
 
-export const VIDEO_FACE_MASK_SIZE = 350
+export const VIDEO_FACE_MASK_SIZE = 320
 
 export const MASKS = [
   {

@@ -7,9 +7,7 @@ import MainFooter from './components/MainFooter.vue'
 <template>
   <MainNavbar />
 
-  <main class="bg-stone-900 min-h-[100vh] relative">
-    <RouterView />
-  </main>
+  <RouterView />
 
   <MainFooter />
 </template>

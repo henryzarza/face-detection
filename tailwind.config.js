@@ -17,6 +17,9 @@ module.exports = {
       vermilion: '#F64D07',
       'dark-transparent': {
         60: 'rgba(0, 0, 0, 0.65)'
+      },
+      'white-transparent': {
+        50: 'rgba(255, 255, 255, 0.50)'
       }
     }
   },
