@@ -26,6 +26,7 @@ Promise.all([
   })
   .catch((error: Error) => {
     errorMessage.value = `There was an error loading the models: ${error.name}`
+    isLoadingModels.value = false
   })
 
 // request access to user's camera
@@ -112,7 +113,7 @@ onUnmounted(() => {
     class="bg-stone-600 min-h-[100vh] flex items-center justify-center relative overflow-x-hidden pt-20 md:pt-0 pb-4"
   >
     <section
-      class="bg-dark-transparent-60 border-2 border-solid border-gold rounded-lg backdrop:blur-sm max-w-[56.875rem] flex flex-col text-center md:px-8 md:py-6 px-4 py-4"
+      class="bg-dark-transparent-60 border-2 border-solid border-gold rounded-lg max-w-[56.875rem] flex flex-col text-center md:px-8 md:py-6 px-4 py-4"
     >
       <h1 class="text-2xl text-gold font-bold capitalize mb-5">Try on</h1>
       <p class="text-base text-white mb-2 max-w-[25.5rem] mx-auto">
@@ -134,7 +135,7 @@ onUnmounted(() => {
       <div class="flex flex-wrap items-center justify-center md:gap-6 sm:gap-4 mt-6">
         <div class="relative">
           <img
-            class="w-[25rem] h-[25rem] max-w-full mb-5"
+            class="w-[25rem] h-[25rem] max-w-full mb-5 relative z-10"
             src="/images/wood-mark.png"
             alt="Wood mark"
           />
@@ -211,6 +212,10 @@ main {
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
+}
+
+section {
+  backdrop-filter: blur(4px);
 }
 
 .main-img[src=''],

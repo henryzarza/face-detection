@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, onMounted } from 'vue'
 import {
   nets,
   detectSingleFace,
@@ -9,6 +9,7 @@ import {
   TinyFaceDetectorOptions
 } from 'face-api.js'
 import { VIDEO_FACE_DIMENSIONS } from '@/constants'
+import overlayImg from '/images/overlay.png'
 
 const videoRef = ref()
 const canvasRef = ref()
@@ -74,7 +75,7 @@ const startDetection = () => {
         }
       }
     } catch {
-      errorMessage.value = 'Error detecting the face'
+      console.error('Error detecting the face')
     }
   }, 200)
 }
@@ -92,7 +93,10 @@ Promise.all([
   })
   .catch((error: Error) => {
     errorMessage.value = `There was an error loading the models: ${error.name}`
+    isLoadingModels.value = false
   })
+
+onMounted(() => (document.title = 'Do Laugh | Face Detection'))
 
 onUnmounted(() => {
   clearInterval(intervalRef)
@@ -103,52 +107,101 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <h1>Show me your smile</h1>
-  <h5 v-if="isLoadingModels">Loading models...</h5>
-  <h5 v-if="errorMessage" aria-live="polite" aria-atomic="true">{{ errorMessage }}</h5>
-  <h4>Quantity of smiles: {{ quantitySmiles }}</h4>
-  <p>If you want to restart the counter just make an angry or sad face for the camera 😄</p>
+  <main class="bg-stone-100 min-h-[100vh] flex items-center justify-center pt-20 md:pt-0 pb-4">
+    <section
+      class="bg-white-transparent-50 max-w-[56.875rem] flex flex-col text-center md:px-8 md:py-6 px-4 py-4"
+    >
+      <h1 class="text-2xl text-stone-950 font-bold capitalize mb-5">Do Laugh</h1>
+      <p class="text-base text-stone-950 mb-2 max-w-[30rem] mx-auto">
+        The idea of this game is pretty simple: you watch a video and there is a counter that
+        increments every time you laugh.
+      </p>
+      <h5 v-if="isLoadingModels" class="text-xl text-vermilion font-medium">Loading models...</h5>
+      <h5
+        v-if="errorMessage"
+        class="text-xl text-vermilion font-medium"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {{ errorMessage }}
+      </h5>
 
-  <fieldset>
-    <label for="showFaceLandmarks">Show face landmarks</label>
-    <input
-      type="checkbox"
-      name="showFaceLandmarks"
-      id="showFaceLandmarks"
-      v-model="showFaceLandmarks"
-    />
-  </fieldset>
+      <div class="flex flex-wrap gap-4 md:gap-12 mt-4">
+        <iframe
+          class="w-[28.125rem] h-[18.75rem] max-w-full"
+          src="https://www.youtube.com/embed/Jz3_xAVxy5g?si=w1d7nTM7kgXfr58r"
+          title="YouTube video player"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
 
-  <div class="container">
-    <video
-      ref="videoRef"
-      :width="VIDEO_FACE_DIMENSIONS.width"
-      :height="VIDEO_FACE_DIMENSIONS.height"
-      @playing="startDetection"
-      autoplay
-      muted
-    />
-    <canvas ref="canvasRef" />
-  </div>
+        <div class="flex flex-col items-center">
+          <div class="relative">
+            <img
+              class="w-[19rem] h-[19rem] max-w-full mb-3 relative z-10"
+              src="/images/color-mark.png"
+              alt="Color mark"
+            />
+            <video
+              ref="videoRef"
+              :width="VIDEO_FACE_DIMENSIONS.width"
+              :height="VIDEO_FACE_DIMENSIONS.height"
+              @playing="startDetection"
+              :poster="overlayImg"
+              class="absolute top-6 left-6"
+              autoplay
+              muted
+            />
+            <canvas ref="canvasRef" class="absolute top-6 left-6" />
+          </div>
+          <input
+            type="checkbox"
+            name="showFaceLandmarks"
+            id="showFaceLandmarks"
+            v-model="showFaceLandmarks"
+            class="checkbox hidden"
+          />
+          <label
+            for="showFaceLandmarks"
+            class="relative text-base text-stone-950 cursor-pointer transition-colors pl-7 hover:text-vermilion before:w-6 before:h-6 before:rounded-md before:border-vermilion before:border-solid before:border-2 before:absolute before:left-0 after:content-['✓'] after:absolute after:left-1 after:font-black after:text-white after:scale-0 after:transition-transform"
+          >
+            Show face landmarks
+          </label>
+        </div>
+      </div>
 
-  <iframe
-    width="560"
-    height="315"
-    src="https://www.youtube.com/embed/IOwLVfO_xZM?si=W7hnLDCkTd3HfYLE"
-    title="YouTube video player"
-    frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen
-  ></iframe>
+      <h4 class="text-base text-stone-950 mb-9 flex items-center justify-center">
+        Quantity of smiles:
+        <strong class="text-vermilion font-bold text-2xl ml-1">{{ quantitySmiles }}</strong>
+      </h4>
+      <p class="text-sm text-stone-950">
+        If you want to restart the counter just make an angry 😠 or sad face 😞.
+      </p>
+    </section>
+  </main>
 </template>
 
 <style scoped>
-.container {
-  position: relative;
+main {
+  background-image: url('/images/party-bg.jpg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 }
 
-.container canvas {
-  position: absolute;
-  inset: 0;
+section {
+  backdrop-filter: blur(8px);
+  box-shadow:
+    -5px -5px 10px 0px rgba(0, 0, 0, 0.3),
+    5px 5px 10px 0px rgba(0, 0, 0, 0.25);
+}
+
+.checkbox:checked + label::before {
+  background-color: #f64d07;
+}
+
+.checkbox:checked + label::after {
+  transform: scale(1);
 }
 </style>
