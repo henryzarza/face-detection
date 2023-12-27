@@ -51,9 +51,9 @@ export function putMaskOnFace(maskSrc: string, imgRef: HTMLImageElement) {
       overlay.src = maskSrc
       overlay.id = 'overlay'
       overlay.style.cssText = `
-        left: ${overlayValues.leftOffset * scale}px;
+        left: calc(${overlayValues.leftOffset * scale}px + 2.5rem);
         position: absolute;
-        top: ${overlayValues.topOffset * scale}px;
+        top: calc(${overlayValues.topOffset * scale}px + 2.5rem);
         transform: rotate(${overlayValues.angle}deg);
         width: ${overlayValues.width * scale}px;
       `

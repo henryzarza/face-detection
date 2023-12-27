@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, onMounted } from 'vue'
 import { nets } from 'face-api.js'
+import overlayImg from '/images/overlay.png'
 
 import { putMaskOnFace } from '@/utils'
 import { MASKS, VIDEO_FACE_MASK_SIZE } from '@/constants'
@@ -97,6 +98,8 @@ const selectMask = (maskSrc: string) => {
   } else errorMessage.value = 'You have to take a picture first 😉'
 }
 
+onMounted(() => (document.title = 'Try On | Face Detection'))
+
 onUnmounted(() => {
   if (streamRef) {
     streamRef.getTracks().forEach((track: { stop: () => any }) => track.stop())
@@ -105,58 +108,113 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <h1>Try on</h1>
-  <h5 v-if="isLoadingModels">Loading models...</h5>
-  <h5 v-if="errorMessage" aria-live="polite" aria-atomic="true">{{ errorMessage }}</h5>
+  <main
+    class="bg-stone-600 min-h-[100vh] flex items-center justify-center relative overflow-x-hidden pt-20 md:pt-0 pb-4"
+  >
+    <section
+      class="bg-dark-transparent-60 border-2 border-solid border-gold rounded-lg backdrop:blur-sm max-w-[56.875rem] flex flex-col text-center md:px-8 md:py-6 px-4 py-4"
+    >
+      <h1 class="text-2xl text-gold font-bold capitalize mb-5">Try on</h1>
+      <p class="text-base text-white mb-2 max-w-[25.5rem] mx-auto">
+        <strong class="fw-bold">Privacy First:</strong> Facial Recognition is done in the browser
+        itself. No video ever leaves your device.
+      </p>
 
-  <div class="container">
+      <h5 v-if="isLoadingModels" class="text-xl text-gold font-medium">Loading models...</h5>
+      <h5
+        v-if="errorMessage"
+        class="text-xl text-gold font-medium"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {{ errorMessage }}
+      </h5>
+      <h5 v-if="isLoadingDetection" class="text-xl text-gold font-medium">Running detection</h5>
+
+      <div class="flex flex-wrap items-center justify-center md:gap-6 sm:gap-4 mt-6">
+        <div class="relative">
+          <img
+            class="w-[25rem] h-[25rem] max-w-full mb-5"
+            src="/images/wood-mark.png"
+            alt="Wood mark"
+          />
+          <img
+            ref="imgElementRef"
+            :width="VIDEO_FACE_MASK_SIZE"
+            :height="VIDEO_FACE_MASK_SIZE"
+            class="absolute top-10 left-10 main-img"
+            src=""
+            alt="Your awesome photo"
+          />
+          <video
+            ref="videoRef"
+            class="absolute top-10 left-10"
+            :width="VIDEO_FACE_MASK_SIZE"
+            :height="VIDEO_FACE_MASK_SIZE"
+            :poster="overlayImg"
+            autoplay
+            muted
+          />
+          <canvas
+            ref="canvasRef"
+            class="hidden"
+            :width="VIDEO_FACE_MASK_SIZE"
+            :height="VIDEO_FACE_MASK_SIZE"
+          />
+          <audio
+            class="hidden"
+            ref="audioElementRef"
+            src="https://res.cloudinary.com/dcqu0udnd/video/upload/v1702474052/camera-audio_z17u44.mp3"
+            type="audio/mp3"
+          ></audio>
+
+          <div class="flex flew-wrap md:gap-6 gap-3 justify-center">
+            <button
+              @click="clearPhoto"
+              class="text-base text-gold font-bold py-2 px-3 border-2 border-solid border-gold transition-all hover:bg-white-transparent-50"
+            >
+              Clear Photo
+            </button>
+            <button
+              @click="takePhoto"
+              class="text-base text-stone-950 bg-gold font-bold py-2 px-3 border-2 border-solid border-gold transition-all hover:bg-white"
+            >
+              Take Photo
+            </button>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 grid-cols-2 gap-3 md:mt-0 mt-3">
+          <button
+            v-for="mask of MASKS"
+            :key="mask.src"
+            @click="() => selectMask(mask.src)"
+            class="w-full rounded-lg bg-white-transparent-50 p-2 transition-all hover:bg-white hover:scale-105"
+          >
+            <img width="100" height="100" :src="mask.src" :alt="mask.alt" />
+          </button>
+        </div>
+      </div>
+    </section>
+
     <img
-      ref="imgElementRef"
-      :width="VIDEO_FACE_MASK_SIZE"
-      :height="VIDEO_FACE_MASK_SIZE"
-      class="img"
-      src=""
-      alt="Your awesome photo"
+      src="/images/mask.png"
+      alt=""
+      class="absolute hidden xl:block top-0 h-[100vh] -right-40 pointer-events-none z-20"
     />
-    <video
-      ref="videoRef"
-      :width="VIDEO_FACE_MASK_SIZE"
-      :height="VIDEO_FACE_MASK_SIZE"
-      poster="https://sm.ign.com/ign_nordic/cover/a/avatar-gen/avatar-generations_prsz.jpg"
-      autoplay
-      muted
-    />
-    <canvas ref="canvasRef" :width="VIDEO_FACE_MASK_SIZE" :height="VIDEO_FACE_MASK_SIZE" />
-    <audio
-      ref="audioElementRef"
-      src="https://res.cloudinary.com/dcqu0udnd/video/upload/v1702474052/camera-audio_z17u44.mp3"
-      type="audio/mp3"
-    ></audio>
-  </div>
-
-  <button @click="clearPhoto">Clear Photo</button>
-  <button @click="takePhoto">Take Photo</button>
-
-  <h6 v-if="isLoadingDetection">Running detection</h6>
-
-  <h4>Select a mask</h4>
-  <div>
-    <button v-for="mask of MASKS" :key="mask.src" @click="() => selectMask(mask.src)">
-      <img width="300" height="300" :src="mask.src" :alt="mask.alt" />
-    </button>
-  </div>
+  </main>
 </template>
 
 <style scoped>
-.container {
-  display: inline-block;
-  position: relative;
+main {
+  background-image: url('/images/venezia-bg.jpg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 }
 
-.img[src=''],
-canvas,
-audio,
-.img:not([src='']) + video {
+.main-img[src=''],
+.main-img:not([src='']) + video {
   display: none;
 }
 </style>

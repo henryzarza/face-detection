@@ -1,29 +1,38 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  font-weight: normal;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-body {
-  line-height: 1.6;
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-    sans-serif;
-  font-size: 16px;
-  min-height: 100vh;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  /**
+  * @license
+  *
+  * Font Family: Chillax
+  * Designed by: Manushi Parikh
+  * URL: https://www.fontshare.com/fonts/chillax
+  * © 2023 Indian Type Foundry
+  *
+  * Font Style:
+  * Chillax Variable(Variable font)
+  *
+  */
+
+  /**
+  * This is a variable font
+  * You can controll variable axes as shown below:
+  * font-variation-settings: 'wght' 700.0;
+  *
+  * available axes:
+  * 'wght' (range from 200.0 to 700.0)
+  */
+
+  @font-face {
+    font-family: 'Chillax';
+    src:
+      url('/Chillax/Chillax.woff2') format('woff2'),
+      url('/Chillax/Chillax.woff') format('woff'),
+      url('/Chillax/Chillax.ttf') format('truetype');
+    font-weight: 200 700;
+    font-display: swap;
+    font-style: normal;
+  }
 }
