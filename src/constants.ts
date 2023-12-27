@@ -12,8 +12,8 @@ import mask11 from '/images/masks/mask-9.png'
 import mask12 from '/images/masks/mask-14.png'
 
 export const VIDEO_FACE_DIMENSIONS = {
-  width: 450,
-  height: 300
+  width: 250,
+  height: 250
 }
 
 export const VIDEO_FACE_MASK_SIZE = 320
