@@ -66,7 +66,7 @@ const startDetection = () => {
         draw.drawFaceExpressions(canvasRef.value, resizedDetection)
       }
 
-      if (detection && detection.expressions) {
+      if (detection?.expressions) {
         if (detection.expressions.happy > 0.7) {
           quantitySmiles.value += 1
         }

@@ -1,9 +1,23 @@
 <script setup lang="ts">
 import { ref, onUnmounted, onMounted, watch } from 'vue'
-import * as handTrack from 'handtrackjs'
-import { PLAY_LIST, MAX_VOLUME, VOLUME_STEPS } from '@/constants'
+import {
+  nets,
+  detectSingleFace,
+  matchDimensions,
+  resizeResults,
+  draw,
+  TinyFaceDetectorOptions
+} from 'face-api.js'
+
+import {
+  PLAY_LIST,
+  MAX_VOLUME,
+  VOLUME_STEPS,
+  VIDEO_FACE_MUSIC_DIMENSIONS,
+  EXPRESSIONS_COMMANDS
+} from '@/constants'
 import cellphone from '/images/cellphone.png'
-// import overlayImg from '/images/overlay.png'
+import overlayImg from '/images/overlay.png'
 import Mute from '@/components/Icons/Mute.vue'
 import Next from '@/components/Icons/Next.vue'
 import Pause from '@/components/Icons/Pause.vue'
@@ -15,80 +29,93 @@ const videoRef = ref()
 const canvasRef = ref()
 const isLoadingModels = ref(true)
 const errorMessage = ref()
-let model: {
-  detect: (arg0: any) => Promise<any>
-  renderPredictions: (arg0: any, arg1: any, arg2: any, arg3: any) => void
+let streamRef: MediaStream
+let intervalRef: string | number | NodeJS.Timeout | undefined
+
+// request access to user's camera
+const showCameraIntoVideo = () => {
+  navigator.mediaDevices
+    .getUserMedia({
+      video: {
+        width: { ideal: VIDEO_FACE_MUSIC_DIMENSIONS },
+        height: { ideal: VIDEO_FACE_MUSIC_DIMENSIONS },
+        facingMode: 'user'
+      },
+      audio: false
+    })
+    .then((stream) => {
+      streamRef = stream
+
+      videoRef.value.srcObject = streamRef
+      matchDimensions(canvasRef.value, {
+        width: VIDEO_FACE_MUSIC_DIMENSIONS,
+        height: VIDEO_FACE_MUSIC_DIMENSIONS
+      })
+    })
+    .catch((error: Error) => {
+      if (error.name === 'NotAllowedError') {
+        errorMessage.value = 'You need to grant this page permission to access your camera.'
+      } else {
+        errorMessage.value = `getUserMedia error: ${error.name}`
+      }
+    })
 }
 
-const runDetection = () => {
-  model.detect(videoRef.value).then((predictions: any) => {
-    if (Array.isArray(predictions)) {
-      try {
-        predictions.forEach((el) => {
-          if (Number(el.score) >= 0.7) {
-            switch (el.label) {
-              case 'closed':
-                audioRef.value.pause()
-                throw new Error('break the loop')
-              case 'pinch':
-              case 'point':
-                if (audioVolume.value < MAX_VOLUME)
-                  audioVolume.value = Number(
-                    (Number(audioVolume.value) + VOLUME_STEPS).toPrecision(2)
-                  )
-                throw new Error('break the loop')
-              case 'open':
-                if (audioCtx.state === 'suspended') {
-                  audioCtx.resume()
-                }
-                audioRef.value.play()
-                throw new Error('break the loop')
-              default:
-                break
-            }
-          }
-        })
-      } catch (error: Error | any) {
-        if (error.message !== 'break the loop') {
-          errorMessage.value = 'Error detecting'
+const startDetection = () => {
+  intervalRef = setInterval(async () => {
+    try {
+      const detection = await detectSingleFace(videoRef.value, new TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceExpressions()
+
+      const resizedDetection = resizeResults(detection, {
+        width: VIDEO_FACE_MUSIC_DIMENSIONS,
+        height: VIDEO_FACE_MUSIC_DIMENSIONS
+      })
+
+      canvasRef.value
+        .getContext('2d')
+        ?.clearRect(0, 0, VIDEO_FACE_MUSIC_DIMENSIONS, VIDEO_FACE_MUSIC_DIMENSIONS)
+      if (resizedDetection) {
+        draw.drawFaceExpressions(canvasRef.value, resizedDetection)
+      }
+
+      if (detection?.expressions) {
+        if (detection.expressions.happy > 0.7 && isPaused.value) {
+          playSong()
+        } else if (detection.expressions.disgusted > 0.7 || detection.expressions.angry > 0.7) {
+          controlSong(1)
+        } else if (detection.expressions.surprised > 0.7 && audioVolume.value < MAX_VOLUME) {
+          audioVolume.value = Number((Number(audioVolume.value) + VOLUME_STEPS).toPrecision(2))
+        } else if (
+          detection.expressions.sad > 0.7 ||
+          (detection.expressions.fearful && !isPaused.value)
+        ) {
+          audioRef.value.pause()
+          isPaused.value = true
         }
       }
+    } catch {
+      console.error('Error detecting the face')
     }
-
-    // show the predictions in the canvas
-    model.renderPredictions(
-      predictions,
-      canvasRef.value,
-      canvasRef.value.getContext('2d'),
-      videoRef.value
-    )
-
-    requestAnimationFrame(runDetection)
-  })
+  }, 200)
 }
 
-// initialize hand track detection
-/* handTrack
-  .load({
-    flipHorizontal: true, // flip e.g for video
-    maxNumBoxes: 2, // maximum number of boxes to detect
-    iouThreshold: 0.6, // ioU threshold for non-max suppression
-    modelSize: 'medium',
-    scoreThreshold: 0.6 // confidence threshold for predictions
-  })
-  .then((entryModel: any) => {
-    handTrack.startVideo(videoRef.value).then((status: any) => {
-      if (status) {
-        isLoadingModels.value = false
-        model = entryModel
-        // running the detection
-        runDetection()
-      } else errorMessage.value = 'Please enable video'
-    })
+// loading models
+Promise.all([
+  nets.tinyFaceDetector.loadFromUri('/models'),
+  nets.faceLandmark68Net.loadFromUri('/models'),
+  nets.faceRecognitionNet.loadFromUri('/models'),
+  nets.faceExpressionNet.loadFromUri('/models')
+])
+  .then(() => {
+    isLoadingModels.value = false
+    showCameraIntoVideo()
   })
   .catch((error: Error) => {
     errorMessage.value = `There was an error loading the models: ${error.name}`
-  }) */
+    isLoadingModels.value = false
+  })
 
 // audio config
 const audioRef = ref()
@@ -139,7 +166,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  handTrack.stopVideo(videoRef.value)
+  clearInterval(intervalRef)
+  if (streamRef) {
+    streamRef.getTracks().forEach((track: { stop: () => any }) => track.stop())
+  }
 })
 </script>
 
@@ -149,15 +179,37 @@ onUnmounted(() => {
   >
     <section class="bg-white-transparent-50 max-w-[23rem] flex flex-col md:p-8 p-4 content-section">
       <h1 class="text-2xl text-stone-950 font-bold capitalize text-center mb-5">
-        <strong class="bg-crimson">Handtrack</strong> Music Player
+        <strong class="bg-crimson">Face Expressions</strong> Player
       </h1>
       <p class="text-base text-stone-950 mb-5">
-        Turn on your camera and interact with the music player using your hand gestures. The
-        available gestures are:
+        Turn on your camera and interact with the music player using your face expressions. The
+        available expressions/commands are:
       </p>
-
-      <video ref="videoRef" class="hidden" width="300" height="300" autoplay muted />
-      <canvas ref="canvasRef" class="w-[300px] max-w-full h-[300px] mb-5 border-2 border-crimson" />
+      <div class="flex gap-3 mb-4">
+        <div
+          class="flex flex-col items-center text-center"
+          v-for="expression in EXPRESSIONS_COMMANDS"
+          :key="expression.expression"
+        >
+          <div class="p-2 bg-white-transparent-60 rounded-lg">
+            <img :src="expression.src" :alt="expression.alt" width="32" height="32" />
+          </div>
+          <strong class="text-sm text-white font-semibold">{{ expression.expression }}</strong>
+          <span class="text-sm text-white">{{ expression.command }}</span>
+        </div>
+      </div>
+      <div class="border-2 border-crimson mb-5 relative">
+        <video
+          ref="videoRef"
+          :width="VIDEO_FACE_MUSIC_DIMENSIONS"
+          :height="VIDEO_FACE_MUSIC_DIMENSIONS"
+          @playing="startDetection"
+          :poster="overlayImg"
+          autoplay
+          muted
+        />
+        <canvas ref="canvasRef" class="absolute inset-0" />
+      </div>
 
       <h5 v-if="isLoadingModels" class="text-xl text-stone-950 font-medium">Loading model...</h5>
       <h5

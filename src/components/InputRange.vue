@@ -1,29 +1,20 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { MAX_VOLUME, VOLUME_STEPS } from '@/constants'
 
-defineProps(['modelValue'])
-const emit = defineEmits(['update:modelValue'])
-const rangeRef = ref()
-
-const onInput = (value: string) => {
-  const percent = (Number(value) / MAX_VOLUME) * 100
-  rangeRef.value.style.setProperty('--slider-percent', percent)
-
-  emit('update:modelValue', value)
-}
+const { modelValue } = defineProps(['modelValue'])
+defineEmits(['update:modelValue'])
 </script>
 
 <template>
   <input
     type="range"
     class="w-full cursor-pointer rounded-lg focus:outline-none bg-mine-shaft"
-    ref="rangeRef"
     min="0"
+    :style="{ '--slider-percent': (Number(modelValue) / MAX_VOLUME) * 100 }"
     :max="MAX_VOLUME"
     :step="VOLUME_STEPS"
     :value="modelValue"
-    @input="onInput(($event.target as HTMLInputElement).value)"
+    @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
   />
 </template>
 
