@@ -91,6 +91,7 @@ const selectMask = (maskSrc: string) => {
     putMaskOnFace(maskSrc, imgElementRef.value)
       .then((response) => {
         isLoadingDetection.value = !response
+        errorMessage.value = null
       })
       .catch((error: Error) => {
         isLoadingDetection.value = false

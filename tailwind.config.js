@@ -15,11 +15,16 @@ module.exports = {
       gold: '#FFBF00',
       crimson: '#EC1850',
       vermilion: '#F64D07',
+      'cod-gray': '#121212',
+      'mine-shaft': '#232323',
       'dark-transparent': {
+        20: 'rgba(0, 0, 0, 0.2)',
+        50: 'rgba(0, 0, 0, 0.5)',
         60: 'rgba(0, 0, 0, 0.65)'
       },
       'white-transparent': {
-        50: 'rgba(255, 255, 255, 0.50)'
+        50: 'rgba(255, 255, 255, 0.50)',
+        60: 'rgba(255, 255, 255, 0.60)'
       }
     }
   },

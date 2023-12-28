@@ -10,6 +10,10 @@ import mask9 from '/images/masks/mask-10.png'
 import mask10 from '/images/masks/mask-8.png'
 import mask11 from '/images/masks/mask-9.png'
 import mask12 from '/images/masks/mask-14.png'
+import angry from '/images/emoji/angry.png'
+import laughing from '/images/emoji/laughing.png'
+import sad from '/images/emoji/sad.png'
+import surprised from '/images/emoji/surprised.png'
 
 export const VIDEO_FACE_DIMENSIONS = {
   width: 250,
@@ -84,5 +88,63 @@ export const ROUTES = [
     path: '/do-laugh',
     name: 'do-laugh',
     text: "Don't Laugh"
+  }
+]
+
+export const PLAY_LIST = [
+  {
+    title: 'Levitating',
+    cover:
+      'https://res.cloudinary.com/dcqu0udnd/image/upload/v1703709418/Future_Nostalgia_psdspl.png',
+    src: 'https://res.cloudinary.com/henryzarza/video/upload/v1600820785/General%20assets/Levitating_ltrtpk.mp3',
+    artist: 'Dua Lipa',
+    album: 'Future Nostalgia, 2020'
+  },
+  {
+    title: 'Applause',
+    cover: 'https://res.cloudinary.com/dcqu0udnd/image/upload/v1703709418/Artpop_cover_ehdnrq.png',
+    src: 'https://res.cloudinary.com/henryzarza/video/upload/v1600820782/General%20assets/Applause_k6d6ch.mp3',
+    artist: 'Lady Gaga',
+    album: 'ARTPOP, 2014'
+  },
+  {
+    title: 'Gimme More',
+    cover: 'https://res.cloudinary.com/dcqu0udnd/image/upload/v1703709418/Blackout_fcq61v.png',
+    src: 'https://res.cloudinary.com/henryzarza/video/upload/v1600820787/General%20assets/GimmeMore_sd5tar.mp3',
+    artist: 'Britney Spears',
+    album: 'Blackout, 2008'
+  }
+]
+
+export const MAX_VOLUME = 2
+
+export const VOLUME_STEPS = 0.1
+
+export const VIDEO_FACE_MUSIC_DIMENSIONS = 300
+
+export const EXPRESSIONS_COMMANDS = [
+  {
+    src: laughing,
+    alt: 'Laughing emoji',
+    expression: 'Laugh',
+    command: 'Play song'
+  },
+  {
+    src: angry,
+    alt: 'Angry emoji',
+    expression: 'Angry',
+    command: 'Next song'
+  },
+  {
+    src: sad,
+    alt: 'Sad emoji',
+    expression: 'Sad',
+    command: 'Pause song'
+  },
+  {
+    src: surprised,
+    alt: 'Surprised emoji',
+    expression: 'Surprised',
+    command: 'Turn up volume'
   }
 ]
