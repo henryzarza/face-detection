@@ -91,21 +91,21 @@ export const PLAY_LIST = [
   {
     title: 'Levitating',
     cover:
-      'https://upload.wikimedia.org/wikipedia/en/thumb/f/f5/Dua_Lipa_-_Future_Nostalgia_%28Official_Album_Cover%29.png/220px-Dua_Lipa_-_Future_Nostalgia_%28Official_Album_Cover%29.png',
+      'https://res.cloudinary.com/dcqu0udnd/image/upload/v1703709418/Future_Nostalgia_psdspl.png',
     src: 'https://res.cloudinary.com/henryzarza/video/upload/v1600820785/General%20assets/Levitating_ltrtpk.mp3',
     artist: 'Dua Lipa',
     album: 'Future Nostalgia, 2020'
   },
   {
     title: 'Applause',
-    cover: 'https://upload.wikimedia.org/wikipedia/en/3/39/Artpop_cover.png',
+    cover: 'https://res.cloudinary.com/dcqu0udnd/image/upload/v1703709418/Artpop_cover_ehdnrq.png',
     src: 'https://res.cloudinary.com/henryzarza/video/upload/v1600820782/General%20assets/Applause_k6d6ch.mp3',
     artist: 'Lady Gaga',
     album: 'ARTPOP, 2014'
   },
   {
     title: 'Gimme More',
-    cover: 'https://upload.wikimedia.org/wikipedia/en/7/76/Britney_Spears_-_Blackout.png',
+    cover: 'https://res.cloudinary.com/dcqu0udnd/image/upload/v1703709418/Blackout_fcq61v.png',
     src: 'https://res.cloudinary.com/henryzarza/video/upload/v1600820787/General%20assets/GimmeMore_sd5tar.mp3',
     artist: 'Britney Spears',
     album: 'Blackout, 2008'
