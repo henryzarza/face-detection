@@ -88,9 +88,10 @@ const startDetection = () => {
         } else if (detection.expressions.surprised > 0.7 && audioVolume.value < MAX_VOLUME) {
           audioVolume.value = Number((Number(audioVolume.value) + VOLUME_STEPS).toPrecision(2))
         } else if (
-          detection.expressions.sad > 0.7 ||
-          (detection.expressions.fearful && !isPaused.value)
+          !isPaused.value &&
+          (detection.expressions.sad > 0.7 || detection.expressions.fearful > 0.7)
         ) {
+          console.log('inside')
           audioRef.value.pause()
           isPaused.value = true
         }
@@ -232,13 +233,11 @@ onUnmounted(() => {
       <div class="flex flex-col bg-cod-gray absolute inset-6 px-12 pb-14">
         <audio ref="audioRef" :src="PLAY_LIST[currentIndex].src" crossorigin="anonymous"></audio>
         <div class="flex-1 flex flex-col justify-center">
-          <div
-            class="relative transition-all overflow-hidden song-image"
-            :class="{ 'motion-safe:animate-spin rounded-full': !isPaused }"
-          >
+          <div class="relative mb-8">
             <img
-              class="w-full border-[5px] border-solid border-mine-shaft"
+              class="w-full border-[5px] border-solid border-mine-shaft transition-all song-image"
               :src="PLAY_LIST[currentIndex].cover"
+              :class="{ 'motion-safe:animate-spin rounded-full': !isPaused }"
               :alt="`Levitating by ${PLAY_LIST[currentIndex].artist}`"
             />
             <div
@@ -247,7 +246,7 @@ onUnmounted(() => {
             />
           </div>
 
-          <h2 class="text-xl text-white font-medium mt-8">
+          <h2 class="text-xl text-white font-medium">
             {{ PLAY_LIST[currentIndex].title }}
           </h2>
           <h3 class="text-base text-white font-semibold">
