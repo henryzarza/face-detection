@@ -125,8 +125,8 @@ export const VIDEO_FACE_MUSIC_DIMENSIONS = 300
 export const EXPRESSIONS_COMMANDS = [
   {
     src: laughing,
-    alt: 'Laughing emoji',
-    expression: 'Laugh',
+    alt: 'Happy emoji',
+    expression: 'Happy',
     command: 'Play song'
   },
   {
